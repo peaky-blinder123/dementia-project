@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroScan AI — Dementia & Alzheimer's MRI Analysis</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            medical: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-card {
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        background: white !important;
+        color: black !important;
+      }
+    }
+    .print-only {
+      display: none;
+    }
+    .gradient-border {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.1));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .mri-scanline {
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0) 0%, rgba(56, 189, 248, 0.15) 50%, rgba(56, 189, 248, 0) 100%);
+      animation: scan 2.5s ease-in-out infinite;
+    }
+    @keyframes scan {
+      0% { top: 0%; }
+      50% { top: 90%; }
+      100% { top: 0%; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="no-print border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <i data-lucide="activity" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">NeuroScan AI</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">OASIS-3</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Deep Learning Dementia & Alzheimer's MRI Screening</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-medium">Model Online (ResNet18)</span>
+        </div>
+        <button onclick="window.print()" class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition border border-slate-700">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>Print Report</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Medical Research Disclaimer Banner -->
+  <div class="no-print bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-300/90 flex items-center justify-center space-x-2">
+    <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400 shrink-0"></i>
+    <span><strong>Research & Clinical Demonstration Tool:</strong> Outputs are statistical predictions based on OASIS MRI datasets and must not replace professional clinical radiological evaluation.</span>
+  </div>
+
+  <!-- Print-Only Clinical Header -->
+  <div class="print-only p-6 border-b border-gray-300 mb-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">NeuroScan AI Diagnostic Summary</h1>
+        <p class="text-sm text-gray-600">Automated Brain MRI Dementia Staging Report (OASIS Architecture)</p>
+      </div>
+      <div class="text-right text-xs text-gray-500">
+        <p id="printTimestamp"></p>
+        <p>Engine: ResNet18 OASIS Classification</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Column: Input & Controls (5 Cols) -->
+      <section class="lg:col-span-5 space-y-6">
+        
+        <!-- Upload Card -->
+        <div class="rounded-2xl gradient-border bg-slate-900/40 p-6 space-y-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="upload-cloud" class="w-4 h-4 text-sky-400"></i>
+              <span>MRI Scan Input</span>
+            </h2>
+            <span class="text-xs text-slate-400">Axial T1 View</span>
+          </div>
+
+          <!-- Drag and Drop Area -->
+          <div id="dropZone" class="relative group cursor-pointer border-2 border-dashed border-slate-700 hover:border-sky-500/60 transition-all rounded-xl p-6 text-center bg-slate-950/60">
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" class="hidden">
+            
+            <div id="uploadPrompt" class="space-y-3">
+              <div class="w-12 h-12 mx-auto rounded-full bg-slate-800/80 group-hover:bg-sky-500/10 flex items-center justify-center text-slate-400 group-hover:text-sky-400 transition-colors">
+                <i data-lucide="image-plus" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-slate-200">Drop brain MRI image here</p>
+                <p class="text-xs text-slate-400 mt-1">or <span class="text-sky-400 underline font-medium">browse files</span> (PNG, JPG, WEBP)</p>
+              </div>
+              <p class="text-[11px] text-slate-500">Recommended: OASIS axial slice (224×224)</p>
+            </div>
+
+            <!-- Image Preview Box -->
+            <div id="previewContainer" class="hidden relative">
+              <div class="relative overflow-hidden rounded-lg border border-slate-800 bg-black aspect-square max-h-72 mx-auto">
+                <img id="imagePreview" src="" alt="MRI Preview" class="w-full h-full object-contain">
+                <div id="scanEffect" class="absolute inset-x-0 h-10 mri-scanline hidden pointer-events-none"></div>
+              </div>
+              <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
+                <span id="fileName" class="truncate max-w-[200px]">scan.jpg</span>
+                <button type="button" id="clearBtn" class="text-rose-400 hover:text-rose-300 font-medium">Remove scan</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button id="analyzeBtn" disabled class="w-full py-3 px-4 rounded-xl font-medium text-sm text-white bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-sky-500/20 flex items-center justify-center space-x-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span id="analyzeBtnText">Analyze Brain MRI</span>
+          </button>
+        </div>
+
+        <!-- 1-Click Sample MRI Scans -->
+        <div class="rounded-2xl gradient-border bg-slate-900/40 p-6 space-y-4 no-print">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center space-x-2">
+              <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i>
+              <span>Try Pre-loaded OASIS Samples</span>
+            </h3>
+            <span class="text-[11px] text-slate-500">1-Click Test</span>
+          </div>
+          <p class="text-xs text-slate-400">Don't have an MRI on hand? Test the model with these validated brain scans:</p>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="loadSample('sample_non_demented.jpg', 'Non Demented')" class="sample-btn group p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition text-left flex items-center space-x-3">
+              <img src="/static/samples/sample_non_demented.jpg" alt="Non Demented" class="w-10 h-10 rounded-lg object-cover border border-slate-700 bg-black">
+              <div class="overflow-hidden">
+                <div class="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 truncate">Non-Demented</div>
+                <div class="text-[10px] text-slate-400">Normal Controls</div>
+              </div>
+            </button>
+
+            <button onclick="loadSample('sample_very_mild.jpg', 'Very mild Dementia')" class="sample-btn group p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 hover:bg-amber-500/5 transition text-left flex items-center space-x-3">
+              <img src="/static/samples/sample_very_mild.jpg" alt="Very Mild" class="w-10 h-10 rounded-lg object-cover border border-slate-700 bg-black">
+              <div class="overflow-hidden">
+                <div class="text-xs font-semibold text-slate-200 group-hover:text-amber-400 truncate">Very Mild</div>
+                <div class="text-[10px] text-slate-400">Early Stage</div>
+              </div>
+            </button>
+
+            <button onclick="loadSample('sample_mild.jpg', 'Mild Dementia')" class="sample-btn group p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/50 hover:bg-orange-500/5 transition text-left flex items-center space-x-3">
+              <img src="/static/samples/sample_mild.jpg" alt="Mild" class="w-10 h-10 rounded-lg object-cover border border-slate-700 bg-black">
+              <div class="overflow-hidden">
+                <div class="text-xs font-semibold text-slate-200 group-hover:text-orange-400 truncate">Mild Dementia</div>
+                <div class="text-[10px] text-slate-400">Noticeable Atrophy</div>
+              </div>
+            </button>
+
+            <button onclick="loadSample('sample_moderate.jpg', 'Moderate Dementia')" class="sample-btn group p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-rose-500/50 hover:bg-rose-500/5 transition text-left flex items-center space-x-3">
+              <img src="/static/samples/sample_moderate.jpg" alt="Moderate" class="w-10 h-10 rounded-lg object-cover border border-slate-700 bg-black">
+              <div class="overflow-hidden">
+                <div class="text-xs font-semibold text-slate-200 group-hover:text-rose-400 truncate">Moderate</div>
+                <div class="text-[10px] text-slate-400">Advanced Atrophy</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metadata Input (Optional for clinical report) -->
+        <div class="rounded-2xl gradient-border bg-slate-900/40 p-5 space-y-3 no-print">
+          <div class="flex items-center justify-between text-xs font-medium text-slate-300">
+            <span>Patient / Study Metadata (Optional)</span>
+            <span class="text-slate-500 text-[10px]">Included in PDF</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Patient Identifier</label>
+              <input type="text" id="patientId" placeholder="e.g. OASIS-PT-8291" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Scan Sequence</label>
+              <input type="text" id="scanSeq" value="T1-weighted MP-RAGE" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: Diagnostic Results (7 Cols) -->
+      <section class="lg:col-span-7 space-y-6">
+
+        <!-- Empty State (Shown before analysis) -->
+        <div id="emptyState" class="h-full min-h-[460px] rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 p-8 flex flex-col items-center justify-center text-center space-y-4">
+          <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-slate-500">
+            <i data-lucide="brain-circuit" class="w-8 h-8"></i>
+          </div>
+          <div class="max-w-sm space-y-1">
+            <h3 class="text-base font-semibold text-slate-200">Awaiting MRI Scan</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Upload an axial brain MRI scan or choose one of the pre-loaded OASIS test samples to view neuro-cognitive classification.</p>
+          </div>
+          <div class="pt-2 flex items-center space-x-6 text-[11px] text-slate-500 font-mono">
+            <span>4 Diagnostic Classes</span>
+            <span>•</span>
+            <span>ResNet18 Backbone</span>
+            <span>•</span>
+            <span>Softmax Probabilities</span>
+          </div>
+        </div>
+
+        <!-- Results Card (Hidden until analysis complete) -->
+        <div id="resultsCard" class="hidden space-y-6 print-card">
+          
+          <!-- Top Classification Card -->
+          <div class="rounded-2xl gradient-border bg-slate-900/60 p-6 space-y-6 border border-slate-800 print-card">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+              <div>
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Primary Classification</span>
+                <div class="flex items-center space-x-3 mt-1.5">
+                  <h2 id="predictionTitle" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">--</h2>
+                  <span id="severityBadge" class="px-3 py-1 rounded-full text-xs font-semibold tracking-wide border">--</span>
+                </div>
+              </div>
+
+              <!-- Confidence Ring / Badge -->
+              <div class="flex items-center space-x-3 bg-slate-950/80 px-4 py-3 rounded-xl border border-slate-800 shrink-0">
+                <div class="text-right">
+                  <div class="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Confidence Score</div>
+                  <div id="confidenceVal" class="text-2xl font-black font-mono text-sky-400">0.0%</div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-400">
+                  <i data-lucide="check-circle" class="w-5 h-5"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Softmax Probability Distribution -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+                  <i data-lucide="bar-chart-2" class="w-4 h-4 text-sky-400"></i>
+                  <span>Class Probability Distribution</span>
+                </h3>
+                <span class="text-xs font-mono text-slate-500">Softmax Normalized</span>
+              </div>
+
+              <div id="probabilitiesContainer" class="space-y-3">
+                <!-- Class bars injected via JS -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Clinical Interpretation Card -->
+          <div class="rounded-2xl gradient-border bg-slate-900/40 p-6 space-y-3 border border-slate-800 print-card">
+            <h3 class="text-sm font-semibold text-slate-200 flex items-center space-x-2">
+              <i data-lucide="clipboard-list" class="w-4 h-4 text-emerald-400"></i>
+              <span>Radiological & Clinical Context</span>
+            </h3>
+            <p id="clinicalNotes" class="text-xs text-slate-300 leading-relaxed">
+              Analysis notes will be generated based on the predicted stage.
+            </p>
+            <div class="pt-3 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-400">
+              <div>
+                <span class="text-slate-500 block text-[10px]">Model Architecture</span>
+                <span class="font-mono text-slate-200">ResNet18 (PyTorch)</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px]">Inference Time</span>
+                <span id="inferenceTime" class="font-mono text-slate-200">-- ms</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px]">Target Framework</span>
+                <span class="font-mono text-slate-200">OASIS Cohort-3</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div class="flex items-center justify-between no-print pt-2">
+            <button onclick="resetAnalysis()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition flex items-center space-x-2 border border-slate-800">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset Scan</span>
+            </button>
+            <button onclick="prepareAndPrint()" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition shadow-lg shadow-sky-600/20 flex items-center space-x-2">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Download / Print Clinical Report</span>
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="no-print border-t border-slate-800/60 bg-slate-950 py-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="brain" class="w-4 h-4 text-sky-500"></i>
+        <span>NeuroScan AI — OASIS Dementia Deep Learning Project</span>
+      </div>
+      <p>Powered by PyTorch 2.x & FastAPI Serverless Ready</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    lucide.createIcons();
+
+    // DOM Elements
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const fileName = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeBtnText = document.getElementById('analyzeBtnText');
+    const scanEffect = document.getElementById('scanEffect');
+    const emptyState = document.getElementById('emptyState');
+    const resultsCard = document.getElementById('resultsCard');
+    const predictionTitle = document.getElementById('predictionTitle');
+    const severityBadge = document.getElementById('severityBadge');
+    const confidenceVal = document.getElementById('confidenceVal');
+    const probabilitiesContainer = document.getElementById('probabilitiesContainer');
+    const clinicalNotes = document.getElementById('clinicalNotes');
+    const inferenceTime = document.getElementById('inferenceTime');
+    const printTimestamp = document.getElementById('printTimestamp');
+
+    let currentFile = null;
+
+    // Severity Meta Information
+    const STAGE_META = {
+      'Non Demented': {
+        badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        badgeText: 'Stage 0: Normal Brain Structure',
+        barColor: 'bg-emerald-500',
+        notes: 'No abnormal ventricular enlargement or significant cerebral atrophy detected. Cortical thickness and hippocampal volumes remain within normal age-adjusted percentiles.'
+      },
+      'Very mild Dementia': {
+        badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        badgeText: 'Stage 1: Early Impairment (CDR 0.5)',
+        barColor: 'bg-amber-400',
+        notes: 'Subtle temporal lobe changes and mild ventricular dilation. Often correlates with Mild Cognitive Impairment (MCI). Recommend clinical baseline MoCA test and longitudinal follow-up within 6 months.'
+      },
+      'Mild Dementia': {
+        badgeClass: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+        badgeText: 'Stage 2: Mild Atrophy (CDR 1.0)',
+        barColor: 'bg-orange-500',
+        notes: 'Noticeable bilateral hippocampal atrophy and widening of cortical sulci. Significant neurodegenerative pattern consistent with early-stage Alzheimer disease pathology.'
+      },
+      'Moderate Dementia': {
+        badgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+        badgeText: 'Stage 3: Advanced Atrophy (CDR 2.0)',
+        barColor: 'bg-rose-500',
+        notes: 'Severe bilateral cortical thinning and marked ventriculomegaly. Advanced atrophy profile strongly indicative of moderate cognitive impairment requiring supportive care coordination.'
+      }
+    };
+
+    // File Drop & Selection Handlers
+    dropZone.addEventListener('click', (e) => {
+      if (e.target !== clearBtn) fileInput.click();
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-sky-500', 'bg-sky-500/5');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-sky-500', 'bg-sky-500/5');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-sky-500', 'bg-sky-500/5');
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (PNG, JPG, JPEG).');
+        return;
+      }
+      currentFile = file;
+      fileName.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        uploadPrompt.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        analyzeBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetAnalysis();
+    });
+
+    function resetAnalysis() {
+      currentFile = null;
+      fileInput.value = '';
+      imagePreview.src = '';
+      uploadPrompt.classList.remove('hidden');
+      previewContainer.classList.add('hidden');
+      analyzeBtn.disabled = true;
+      scanEffect.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      resultsCard.classList.add('hidden');
+    }
+
+    // Load Pre-loaded OASIS Sample
+    async function loadSample(filename, stageLabel) {
+      try {
+        const res = await fetch(`/static/samples/${filename}`);
+        if (!res.ok) throw new Error('Sample not found');
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: 'image/jpeg' });
+        handleFileSelect(file);
+        
+        // Auto-trigger analysis for seamless demo
+        setTimeout(() => {
+          runAnalysis();
+        }, 200);
+      } catch (err) {
+        console.error('Failed to load sample:', err);
+        alert('Could not load sample MRI scan.');
+      }
+    }
+
+    // Run Prediction API Request
+    analyzeBtn.addEventListener('click', runAnalysis);
+
+    async function runAnalysis() {
+      if (!currentFile) return;
+
+      const startTime = performance.now();
+      analyzeBtn.disabled = true;
+      analyzeBtnText.textContent = 'Processing Neural Inference...';
+      scanEffect.classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Failed to complete MRI prediction');
+        }
+
+        const data = await response.json();
+        const elapsed = Math.round(performance.now() - startTime);
+
+        renderResults(data, elapsed);
+      } catch (err) {
+        console.error('Prediction error:', err);
+        alert('Analysis error: ' + err.message);
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtnText.textContent = 'Analyze Brain MRI';
+        scanEffect.classList.add('hidden');
+      }
+    }
+
+    // Render Diagnostic Results
+    function renderResults(data, elapsedMs) {
+      emptyState.classList.add('hidden');
+      resultsCard.classList.remove('hidden');
+
+      const pred = data.prediction;
+      const meta = STAGE_META[pred] || {
+        badgeClass: 'bg-slate-700 text-slate-200',
+        badgeText: 'Stage Undetermined',
+        barColor: 'bg-sky-500',
+        notes: 'Standard neuroimaging pattern.'
+      };
+
+      predictionTitle.textContent = pred;
+      severityBadge.className = `px-3 py-1 rounded-full text-xs font-semibold tracking-wide border ${meta.badgeClass}`;
+      severityBadge.textContent = meta.badgeText;
+      confidenceVal.textContent = `${data.confidence}%`;
+      clinicalNotes.textContent = meta.notes;
+      inferenceTime.textContent = `${elapsedMs} ms`;
+
+      // Render probability bars
+      probabilitiesContainer.innerHTML = '';
+      const order = ['Non Demented', 'Very mild Dementia', 'Mild Dementia', 'Moderate Dementia'];
+
+      order.forEach(className => {
+        const prob = data.probabilities[className] || 0;
+        const isTop = className === pred;
+        const classMeta = STAGE_META[className] || { barColor: 'bg-sky-500' };
+
+        const row = document.createElement('div');
+        row.className = 'space-y-1.5';
+        row.innerHTML = `
+          <div class="flex justify-between text-xs font-medium">
+            <span class="${isTop ? 'text-white font-semibold flex items-center space-x-1.5' : 'text-slate-400'}">
+              ${isTop ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5 text-sky-400 inline"></i>' : ''}
+              <span>${className}</span>
+            </span>
+            <span class="font-mono ${isTop ? 'text-sky-400 font-bold' : 'text-slate-400'}">${prob}%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+            <div class="h-full rounded-full transition-all duration-700 ease-out ${classMeta.barColor}" style="width: ${prob}%;"></div>
+          </div>
+        `;
+        probabilitiesContainer.appendChild(row);
+      });
+
+      lucide.createIcons();
+    }
+
+    function prepareAndPrint() {
+      const patientId = document.getElementById('patientId').value.trim() || 'ANON-MRI-' + Math.floor(1000 + Math.random() * 9000);
+      printTimestamp.textContent = `Report Date: ${new Date().toLocaleString()} | ID: ${patientId}`;
+      window.print();
+    }
+  </script>
+</body>
+</html>
